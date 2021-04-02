@@ -1,20 +1,18 @@
+const bodyparser = require('body-parser')
 const express = require('express')
 const morgan = require('morgan')
 
 const app = express()
 
-
 // TOOLS
+app.use(morgan('dev'))
+app.use(bodyparser.json())
+app.use(bodyparser.urlencoded({extended: false}))
 
-app.use(express.json())
+// IMPORT CONTROLLERS
+const customerController = require('./controllers/customerController')
 
-
-
-
-
-
-
-
+app.use('/customers', customerController)
 
 // OTHERS
 
