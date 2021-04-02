@@ -14,8 +14,8 @@ const customerController = require('./controllers/customerController')
 
 app.use('/customers', customerController)
 
-// OTHERS
 
+// OTHERS
 const PORT = 8082
 
 app.listen(PORT, () => {
