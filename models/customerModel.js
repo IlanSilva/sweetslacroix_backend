@@ -17,9 +17,18 @@ const CustomerSchema = new mongoose.Schema({
         type: String,
     },
     address: {
-        street: String,
-        neighborhood: String,
-        housenumber: Number 
+        street: {
+            type: String,
+            required: true
+        },
+        neighborhood: {
+            type: String,
+            required: true,
+        },
+        housenumber: {
+            type: Number,
+            required: true
+        } 
     },
     createdAt: {
         type: Date,
