@@ -1,11 +1,13 @@
-const mongoose = require('mongoose')
+const { Pool } = require('pg')
 
-mongoose.Promise = global.Promise
-mongoose.connect("mongodb://localhost:27017/slc_store").then(res => {
-    console.log('Banco conectado com sucesso.')
-}).catch(err => {
-    console.log('Houve um erro ao se conectar ao banco de dados!', err)
+
+const db = new Pool({
+    user: "postgres",
+    password: "323232",
+    host: "localhost",
+    port: 5432,
+    database: "slc_store"
 })
 
 
-module.exports = mongoose
+module.exports = db
