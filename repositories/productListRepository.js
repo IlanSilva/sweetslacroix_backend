@@ -2,7 +2,7 @@ const db = require('../database/database')
 
 const createProduct = (data) => {
     const querytext = `INSERT INTO LOGISTIC.PRODUCTS (SL_PRODUCT_NAME, SL_PRODUCT_VALUE) VALUES ($1, $2) RETURNING *;`
-    const values = [data.product.name, data.product.value]
+    const values = [data.name, data.value]
     const query = db.query(querytext, values)
     return query
 
