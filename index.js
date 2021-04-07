@@ -10,9 +10,11 @@ app.use(bodyparser.json())
 app.use(bodyparser.urlencoded({extended: false}))
 
 // IMPORT CONTROLLERS
-const customerController = require('./controllers/customerController')
 
-app.use('/customers', customerController)
+const productListController = require('./controllers/productListController')
+
+
+app.use('/products', productListController)
 
 
 // OTHERS
