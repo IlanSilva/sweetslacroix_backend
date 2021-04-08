@@ -13,9 +13,11 @@ app.use(bodyparser.urlencoded({extended: false}))
 
 const productListController = require('./controllers/productListController')
 const customerController = require('./controllers/customerController')
+const orderController = require('./controllers/orderController')
 
 app.use('/products', productListController)
 app.use('/customers', customerController)
+app.use('/orders', orderController)
 
 // OTHERS
 const PORT = 8082

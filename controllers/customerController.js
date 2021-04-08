@@ -12,7 +12,7 @@ Router.post('/createclients', async (req, res) => {
     }
     const client = await db.connect()
     try{
-        const textquery = 'INSERT INTO LOGISTIC.PRODUCTS (SL_NAME, SL_PHONE, SL_EMAIL) VALUES ($1, $2, $3) RETURNING *;'
+        const textquery = 'INSERT INTO CUSTOMERS.PERSONS (SL_NAME, SL_PHONE, SL_EMAIL) VALUES ($1, $2, $3) RETURNING *;'
         const values = [req.body.name, req.body.phone, req.body.email]
         const createcustomer = await client.query(textquery, values)
         
@@ -38,7 +38,7 @@ Router.get('/getclients', async (req, res) => {
             if (getcustomer.rows.length <= 0){
                 res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getcustomer.rows})
             }else{
-                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${customers.length} registros.`, error: false, data: getcustomer.rows})
+                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getcustomer.rowCount} registros.`, error: false, data: getcustomer.rows})
             }
         }catch(error) {
             console.log(error)
@@ -55,7 +55,7 @@ Router.get('/getclients', async (req, res) => {
             if (getcustomer.rows.length <= 0){
                 res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getcustomer.rows})
             }else{
-                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getcustomer.length} registros.`, error: false, data: getcustomer.rows})
+                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getcustomer.rowCount} registros.`, error: false, data: getcustomer.rows})
             }
         }catch(error) {
             console.log(error)
