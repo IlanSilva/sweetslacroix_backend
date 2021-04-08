@@ -2,8 +2,10 @@ const express = require('express')
 const { query } = require('../database/database')
 const Router = express.Router()
 
-// REPOSITÓRIOS (REPOSITORY PATTERN)
+// DATABASE
 const db = require('../database/database')
+
+// LOCALIZAÇÃO DE PRODUTOS
 
 Router.get('/getproducts', async (req, res) => {
     if(req.query.name){
@@ -41,6 +43,8 @@ Router.get('/getproducts', async (req, res) => {
     }
 })
 
+// CRIAÇÃO DE PRODUTOS
+
 Router.post('/createproducts', async (req, res) => {
     if (req.body.name && req.body.value || Number.isInteger(req.body.value)){
         const client = await db.connect()
@@ -64,6 +68,8 @@ Router.post('/createproducts', async (req, res) => {
         res.status(404).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true})
     }
 })
+
+// ATUALIZAÇÃO DE PRODUTOS
 
 Router.put('/updateproducts', async (req, res) => {
     if (req.query.id && req.body.name && req.body.value || Number.isInteger(req.body.value)){
@@ -90,6 +96,7 @@ Router.put('/updateproducts', async (req, res) => {
     }
 })
 
+// EXCLUSÃO DE PRODUTOS
 
 Router.delete('/deleteteproducts', async (req, res) => {
     if (req.query.id){
