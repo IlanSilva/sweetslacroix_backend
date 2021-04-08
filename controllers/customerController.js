@@ -7,7 +7,9 @@ const db = require('../database/database')
 // CRIAÇÃO DE CLIENTE
 
 Router.post('/createclients', async (req, res) => {
-    if (!req.body.name)
+    if (!req.body.name){
+        res.status(404).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true, data: req.body })
+    }
     const client = await db.connect()
     try{
         const textquery = 'INSERT INTO LOGISTIC.PRODUCTS (SL_NAME, SL_PHONE, SL_EMAIL) VALUES ($1, $2, $3) RETURNING *;'
@@ -46,21 +48,14 @@ Router.get('/getclients', async (req, res) => {
         }
     }else{
         try{
-            const querytext = 'SELECT * FROM CUSTOMERS.PERSONS WHERE SL_ID_PK ILIKE $1;'
+            const querytext = 'SELECT * FROM CUSTOMERS.PERSONS WHERE SL_NAME ILIKE $1;'
             const values = [`${req.body.name}%`]
-            const getcustomer = await client.query(querytext)
+            const getcustomer = await client.query(querytext, values)
             // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
             if (getcustomer.rows.length <= 0){
                 res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getcustomer.rows})
             }else{
-                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${customers.length} registros.`, error: false, data: getcustomer.rows})
-            }
-                // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
-
-            if (getcustomer.length <= 0){
-                res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getcustomer.rows})
-            }else{
-                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${customers.length} registros.`, error: false, data: getcustomer.rows})
+                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getcustomer.length} registros.`, error: false, data: getcustomer.rows})
             }
         }catch(error) {
             console.log(error)
@@ -73,7 +68,7 @@ Router.get('/getclients', async (req, res) => {
 
 // ATUALIZAÇÃO DE PRODUTOS
 
-Router.put('/updateclients', (req, res) => {
+Router.put('/updateclients', async (req, res) => {
     if (!req.query.id) {
         res.status(404).json({message: "Não foi passado nenhum ID em sua requisição!", error: true})
         return
@@ -97,7 +92,7 @@ Router.put('/updateclients', (req, res) => {
 
 // EXCLUSÃO DE CLIENTES
 
-Router.delete('/deleteclients', (req, res) => {
+Router.delete('/deleteclients', async (req, res) => {
     if (!req.query.id){
         res.status(404).json({message: "Não foi passado nenhum ID em sua requisição!", error: true})
         return
