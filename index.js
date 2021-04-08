@@ -12,10 +12,10 @@ app.use(bodyparser.urlencoded({extended: false}))
 // IMPORT CONTROLLERS
 
 const productListController = require('./controllers/productListController')
-
+const customerController = require('./controllers/customerController')
 
 app.use('/products', productListController)
-
+app.use('/customers', customerController)
 
 // OTHERS
 const PORT = 8082
