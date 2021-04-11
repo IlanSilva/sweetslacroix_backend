@@ -6,7 +6,7 @@ const cors = require('cors')
 const app = express()
 
 // TOOLS
-app.use(cors)
+app.use(cors())
 app.use(morgan('dev'))
 app.use(bodyparser.json())
 app.use(bodyparser.urlencoded({extended: false}))
