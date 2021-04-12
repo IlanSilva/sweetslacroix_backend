@@ -49,7 +49,7 @@ Router.get('/getclients', async (req, res) => {
     }else{
         try{
             const querytext = 'SELECT * FROM CUSTOMERS.PERSONS WHERE SL_NAME ILIKE $1;'
-            const values = [`${req.body.name}%`]
+            const values = [`${req.query.name}%`]
             const getcustomer = await client.query(querytext, values)
             // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
             if (getcustomer.rows.length <= 0){
