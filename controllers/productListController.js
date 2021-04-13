@@ -20,7 +20,6 @@ Router.get('/getproducts', async (req, res) => {
                 res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getproducts.rowCount} registros.`, error: false, data: getproducts.rows})
             }
         }catch(err){
-            console.log(err)
             res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
         }finally{
             client.release()
@@ -56,7 +55,7 @@ Router.post('/createproducts', async (req, res) => {
             const createproduct = await client.query(textquery, values)
             await client.query('COMMIT')
             // END TRANSACTION
-            res.status(200).json({message: 'Produto cadastrado com sucesso!', error: false, data: createproduct.rows[0]})
+            res.status(201).json({message: 'Produto cadastrado com sucesso!', error: false, data: createproduct.rows[0]})
         }catch(err){
             await client.query('ROLLBACK')
             res.status(404).json({message: 'Falha no cadastro do produto!', error: true, data: req.body})
@@ -65,7 +64,7 @@ Router.post('/createproducts', async (req, res) => {
             client.release()
         }
     }else{
-        res.status(404).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true})
+        res.status(200).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true})
     }
 })
 
@@ -82,17 +81,16 @@ Router.put('/updateproducts', async (req, res) => {
             const updateproduct = await client.query(querytext, values)
             await client.query('COMMIT')
             // END TRANSACTION
-            res.status(200).json({message: 'Produto atualizado com sucesso!', error: false, data: updateproduct.rows[0]})
+            res.status(201).json({message: 'Produto atualizado com sucesso!', error: false, data: updateproduct.rows[0]})
         }catch(err){
             await client.query('ROLLBACK')
-            console.log(err)
             res.status(404).json({message: 'Falha na atualização do produto!', error: true, data: req.body})
         }finally{
             // CLIENT EXIT
             client.release()
         }
     }else{
-        res.status(404).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true})
+        res.status(200).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true})
     }
 })
 
@@ -109,7 +107,7 @@ Router.delete('/deleteteproducts', async (req, res) => {
             const deleteproduct = await client.query(querytext, values)
             await client.query('COMMIT')
             // END TRANSACTION
-            res.status(200).json({message: 'Produto deletado com sucesso!', error: false, data: deleteproduct.rows[0]})
+            res.status(201).json({message: 'Produto deletado com sucesso!', error: false, data: deleteproduct.rows[0]})
         }catch(err){
             await client.query('ROLLBACK')
             res.status(404).json({message: 'Falha na atualização do produto!', error: true, data: req.body})
@@ -118,7 +116,7 @@ Router.delete('/deleteteproducts', async (req, res) => {
             client.release()
         }
     }else{
-        res.status(404).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true})
+        res.status(200).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true})
     }
 })
 
