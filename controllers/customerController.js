@@ -13,7 +13,7 @@ Router.post('/createclients', async (req, res) => {
     }
     const client = await db.connect()
     const emailverify = await db.query('SELECT SL_EMAIL FROM CUSTOMERS.PERSONS WHERE SL_EMAIL = $1;', [req.body.email])
-    if (emailverify.rows[0].sl_email == req.body.email) {
+    if (emailverify.rowCount > 0) {
         res.status(200).json({message: "Já existe um cadastro com este e-mail!", error: true, data: req.body })
         return
     }
@@ -26,7 +26,6 @@ Router.post('/createclients', async (req, res) => {
         res.status(201).json({message: 'Cliente registrado com sucesso!', error: false, data: createcustomer.rows[0]})
         
     }catch(err){
-        console.log(err)
         res.status(400).json({message: 'Falha no registro do cliente!', error: true, data: req.body})
     }finally{
         client.release()
@@ -48,7 +47,6 @@ Router.get('/getclients', async (req, res) => {
                 res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getcustomer.rowCount} registros.`, error: false, data: getcustomer.rows})
             }
         }catch(error) {
-            console.log(error)
             res.status(400).json({message: 'Falha ao recuperar dados!', error: true})
         }finally{
             client.release()
@@ -65,7 +63,6 @@ Router.get('/getclients', async (req, res) => {
                 res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getcustomer.rowCount} registros.`, error: false, data: getcustomer.rows})
             }
         }catch(error) {
-            console.log(error)
             res.status(400).json({message: 'Falha ao recuperar dados!', error: true})
         }finally{
             client.release()
@@ -90,7 +87,6 @@ Router.put('/updateclients', async (req, res) => {
         res.status(201).json({message: "Cadastro de cliente atualizado com sucesso!", error: false, data: updateproduct})
 
     }catch(err){
-        console.log(err)
         res.status(400).json({message: "Falha ao atualizar o cadastro do cliente!", error: true, data: req.body})
     }finally{
         client.release()
