@@ -9,6 +9,7 @@ const db = require('../database/database')
 Router.post('/createclients', async (req, res) => {
     if (!req.body.name){
         res.status(404).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true, data: req.body })
+        return
     }
     const client = await db.connect()
     try{
