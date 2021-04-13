@@ -8,20 +8,26 @@ const db = require('../database/database')
 
 Router.post('/createclients', async (req, res) => {
     if (!req.body.name){
-        res.status(404).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true, data: req.body })
+        res.status(200).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true, data: req.body })
         return
     }
     const client = await db.connect()
+    const emailverify = await db.query('SELECT SL_EMAIL FROM CUSTOMERS.PERSONS WHERE SL_EMAIL = $1;', [req.body.email])
+    if (emailverify.rows[0].sl_email == req.body.email) {
+        res.status(200).json({message: "Já existe um cadastro com este e-mail!", error: true, data: req.body })
+        return
+    }
+    
     try{
         const textquery = 'INSERT INTO CUSTOMERS.PERSONS (SL_NAME, SL_PHONE, SL_EMAIL) VALUES ($1, $2, $3) RETURNING *;'
         const values = [req.body.name, req.body.phone, req.body.email]
         const createcustomer = await client.query(textquery, values)
         
-        res.status(200).json({message: 'Cliente registrado com sucesso!', error: false, data: createcustomer.rows[0]})
+        res.status(201).json({message: 'Cliente registrado com sucesso!', error: false, data: createcustomer.rows[0]})
         
     }catch(err){
         console.log(err)
-        res.status(404).json({message: 'Falha no registro do cliente!', error: true, data: req.body})
+        res.status(400).json({message: 'Falha no registro do cliente!', error: true, data: req.body})
     }finally{
         client.release()
     }
@@ -43,7 +49,7 @@ Router.get('/getclients', async (req, res) => {
             }
         }catch(error) {
             console.log(error)
-            res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
+            res.status(400).json({message: 'Falha ao recuperar dados!', error: true})
         }finally{
             client.release()
         }
@@ -60,7 +66,7 @@ Router.get('/getclients', async (req, res) => {
             }
         }catch(error) {
             console.log(error)
-            res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
+            res.status(400).json({message: 'Falha ao recuperar dados!', error: true})
         }finally{
             client.release()
         }
@@ -71,7 +77,7 @@ Router.get('/getclients', async (req, res) => {
 
 Router.put('/updateclients', async (req, res) => {
     if (!req.query.id) {
-        res.status(404).json({message: "Não foi passado nenhum ID em sua requisição!", error: true})
+        res.status(200).json({message: "Não foi passado nenhum ID em sua requisição!", error: true})
         return
     }
     const client = await db.connect()
@@ -81,11 +87,11 @@ Router.put('/updateclients', async (req, res) => {
         const values = [req.body.name, req.body.phone, req.body.email, req.query.id]
         const updateproduct = await client.query(querytext, values)
         
-        res.status(200).json({message: "Cadastro de cliente atualizado com sucesso!", error: false, data: updateproduct})
+        res.status(201).json({message: "Cadastro de cliente atualizado com sucesso!", error: false, data: updateproduct})
 
     }catch(err){
         console.log(err)
-        res.status(404).json({message: "Falha ao atualizar o cadastro do cliente!", error: true, data: req.body})
+        res.status(400).json({message: "Falha ao atualizar o cadastro do cliente!", error: true, data: req.body})
     }finally{
         client.release()
     }
@@ -95,7 +101,7 @@ Router.put('/updateclients', async (req, res) => {
 
 Router.delete('/deleteclients', async (req, res) => {
     if (!req.query.id){
-        res.status(404).json({message: "Não foi passado nenhum ID em sua requisição!", error: true})
+        res.status(200).json({message: "Não foi passado nenhum ID em sua requisição!", error: true})
         return
     }
     const client = await db.connect()
@@ -103,9 +109,9 @@ Router.delete('/deleteclients', async (req, res) => {
         const querytext = 'DELETE FROM CUSTOMERS.PERSONS WHERE SL_ID_PK = $1 RETURNING *;'
         const values = [req.query.id]
         const deleteproduct = await client.query(querytext, values)
-        res.status(200).json({message: "Cliente deletado com sucesso!", error: false, data: deleteproduct.rows})
+        res.status(201).json({message: "Cliente deletado com sucesso!", error: false, data: deleteproduct.rows})
     }catch(err){
-        res.status(404).json({message: "Falha ao tentar deletar o cliente!", error: true, data: req.body})
+        res.status(400).json({message: "Falha ao tentar deletar o cliente!", error: true, data: req.body})
     }finally{
         client.release()
     }
