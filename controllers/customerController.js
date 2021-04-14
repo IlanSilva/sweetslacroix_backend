@@ -70,10 +70,31 @@ Router.get('/getclients', async (req, res) => {
     }
 })
 
+// LOCALIZAR CLIENTE POR ID
+
+Router.get('/getclients/:id', async (req, res) => {
+    const client = await db.connect()
+    try{
+        const querytext = 'SELECT * FROM CUSTOMERS.PERSONS WHERE SL_ID_PK = $1;'
+        const values = [req.params.id]
+        const getcustomer = await client.query(querytext, values)
+
+        if (getcustomer.rowCount <= 0){
+            res.status(200).json({message: `Não foi localizado nenhum registro com este id!`, error: true, data: getcustomer.rows})
+        }else{
+            res.status(200).json({message: `Localização feita com sucesso!`, error: false, data: getcustomer.rows})
+        }
+    }catch(err){
+        res.status(400).json({message: 'Falha ao recuperar dados!', error: true})
+    }finally{
+        client.release()
+    }
+})
+
 // ATUALIZAÇÃO DE PRODUTOS
 
-Router.put('/updateclients', async (req, res) => {
-    if (!req.query.id) {
+Router.put('/updateclients/:id', async (req, res) => {
+    if (!req.params.id) {
         res.status(200).json({message: "Não foi passado nenhum ID em sua requisição!", error: true})
         return
     }
@@ -81,7 +102,7 @@ Router.put('/updateclients', async (req, res) => {
 
     try{
         const querytext = 'UPDATE CUSTOMERS.PERSONS SET SL_NAME = $1, SL_PHONE = $2, SL_EMAIL = $3 WHERE SL_ID_PK = $4 RETURNING *;'
-        const values = [req.body.name, req.body.phone, req.body.email, req.query.id]
+        const values = [req.body.name, req.body.phone, req.body.email, req.params.id]
         const updateproduct = await client.query(querytext, values)
         
         res.status(201).json({message: "Cadastro de cliente atualizado com sucesso!", error: false, data: updateproduct})
