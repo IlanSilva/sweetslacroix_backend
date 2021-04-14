@@ -12,7 +12,7 @@ Router.post('/createclients', async (req, res) => {
         return
     }
     const client = await db.connect()
-    const emailverify = await db.query('SELECT SL_EMAIL FROM CUSTOMERS.PERSONS WHERE SL_EMAIL = $1;', [req.body.email])
+    const emailverify = await client.query('SELECT SL_EMAIL FROM CUSTOMERS.PERSONS WHERE SL_EMAIL = $1;', [req.body.email])
     if (emailverify.rowCount > 0) {
         res.status(200).json({message: "Já existe um cadastro com este e-mail!", error: true, data: req.body })
         return
@@ -99,10 +99,19 @@ Router.put('/updateclients/:id', async (req, res) => {
         return
     }
     const client = await db.connect()
+    const emailverify = await client.query('SELECT SL_EMAIL FROM CUSTOMERS.PERSONS WHERE SL_EMAIL = $1;', [req.body.email])
+    if (emailverify.rowCount > 0) {
+        if (emailverify.rows[0].sl_email == req.body.email){
+            
+        }else{
+            res.status(200).json({message: "Já existe um cadastro com este e-mail!", error: true, data: req.body })
+            return
+        }
+    }
 
     try{
-        const querytext = 'UPDATE CUSTOMERS.PERSONS SET SL_NAME = $1, SL_PHONE = $2, SL_EMAIL = $3 WHERE SL_ID_PK = $4 RETURNING *;'
-        const values = [req.body.name, req.body.phone, req.body.email, req.params.id]
+        const querytext = 'UPDATE CUSTOMERS.PERSONS SET SL_NAME = $1, SL_PHONE = $2, SL_EMAIL = $3, PR_CPF = $4 WHERE SL_ID_PK = $5 RETURNING *;'
+        const values = [req.body.name, req.body.phone, req.body.email, req.body.cpf, req.params.id]
         const updateproduct = await client.query(querytext, values)
         
         res.status(201).json({message: "Cadastro de cliente atualizado com sucesso!", error: false, data: updateproduct})
