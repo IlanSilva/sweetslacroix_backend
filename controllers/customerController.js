@@ -99,11 +99,9 @@ Router.put('/updateclients/:id', async (req, res) => {
         return
     }
     const client = await db.connect()
-    const emailverify = await client.query('SELECT SL_EMAIL FROM CUSTOMERS.PERSONS WHERE SL_EMAIL = $1;', [req.body.email])
+    const emailverify = await client.query('SELECT SL_ID_PK, SL_EMAIL FROM CUSTOMERS.PERSONS WHERE SL_EMAIL = $1;', [req.body.email])
     if (emailverify.rowCount > 0) {
-        if (emailverify.rows[0].sl_email == req.body.email){
-            
-        }else{
+        if(emailverify.rows[0].sl_id_pk != req.params.id){
             res.status(200).json({message: "Já existe um cadastro com este e-mail!", error: true, data: req.body })
             return
         }
@@ -117,6 +115,7 @@ Router.put('/updateclients/:id', async (req, res) => {
         res.status(201).json({message: "Cadastro de cliente atualizado com sucesso!", error: false, data: updateproduct})
 
     }catch(err){
+        console.log(err)
         res.status(400).json({message: "Falha ao atualizar o cadastro do cliente!", error: true, data: req.body})
     }finally{
         client.release()
