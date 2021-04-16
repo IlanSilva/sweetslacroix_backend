@@ -19,8 +19,8 @@ Router.post('/createclients', async (req, res) => {
     }
     
     try{
-        const textquery = 'INSERT INTO CUSTOMERS.PERSONS (SL_NAME, SL_PHONE, SL_EMAIL) VALUES ($1, $2, $3) RETURNING *;'
-        const values = [req.body.name, req.body.phone, req.body.email]
+        const textquery = 'INSERT INTO CUSTOMERS.PERSONS (SL_NAME, SL_PHONE, SL_EMAIL, PR_CPF) VALUES ($1, $2, $3, $4) RETURNING *;'
+        const values = [req.body.name, req.body.phone, req.body.email, req.body.cpf]
         const createcustomer = await client.query(textquery, values)
         
         res.status(201).json({message: 'Cliente registrado com sucesso!', error: false, data: createcustomer.rows[0]})
