@@ -1,7 +1,7 @@
 // DATABASE
 const db = require('../../database/database')
 
-const createValidation = function (req, res, next){
+const createValidation = async function (req, res, next){
     const client = await db.connect()
     try{
         if (!req.body){
@@ -27,18 +27,22 @@ const createValidation = function (req, res, next){
             res.status(200).json({message: 'Não foi recebido nenhum produto em sua requisição!', error: true})
             return
         }else if(req.body.basket){
-            let arraytest = []
-            req.body.basket.forEach((element) => {
+            console.log(req.body.basket, '-'*40)
+            const arraytest = []
+            for (element of req.body.basket){
+                console.log('print element', element)
                 if(!element.id){
                 // EMPTY
                 }else{
                     const productverify = await client.query('SELECT SL_ID_PK FROM LOGISTIC.PRODUCTS WHERE SL_ID_PK = $1;', [element.id])
                     if(productverify.rowCount > 0){
                         arraytest.push(element)
+                        console.log('print arraytest', arraytest)
                     }
                 }
-            })
+            }
             if (arraytest.length != req.body.basket.length){
+                console.log('print arraytest in logic', arraytest)
                 res.status(200).json({message: 'Há produtos em sua lista que não está válido!', error: true})
                 return
             }
@@ -55,7 +59,6 @@ const createValidation = function (req, res, next){
         res.status(404).json({message: 'Houve um erro ao tentar realizar a validação de itens! ' + err, error: true})
     }finally{
         client.release()
-        db.end()
     }
 }
 module.exports = {
