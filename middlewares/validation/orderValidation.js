@@ -49,10 +49,15 @@ const createValidation = function (req, res, next){
             res.status(200).json({message: 'Está faltando dados de endereço!', error: true})
             return
         }
+        next()
     }catch(err){
         console.log(err)
         res.status(404).json({message: 'Houve um erro ao tentar realizar a validação de itens! ' + err, error: true})
     }finally{
         client.release()
+        db.end()
     }
+}
+module.exports = {
+    createValidation
 }
