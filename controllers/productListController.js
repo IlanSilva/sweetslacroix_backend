@@ -1,5 +1,4 @@
 const express = require('express')
-const { query } = require('../database/database')
 const Router = express.Router()
 
 // DATABASE
@@ -11,7 +10,7 @@ Router.get('/getproducts', async (req, res) => {
     if(req.query.name){
         const client = await db.connect()
         try{
-            const querytext = "SELECT * FROM LOGISTIC.PRODUCTS WHERE SL_PRODUCT_NAME ILIKE $1;"
+            const querytext = "SELECT * FROM LOGISTIC.PRODUCTS WHERE SL_PRODUCT_NAME ILIKE $1 ORDER BY SL_PRODUCT_NAME LIMIT 10;"
             const values = [`${req.query.name}%`]
             const getproducts = await client.query(querytext, values)
             if (getproducts.rowCount <= 0) {
@@ -25,9 +24,9 @@ Router.get('/getproducts', async (req, res) => {
             client.release()
         }
     }else{
-        const client = db.connect()
+        const client = await db.connect()
         try{
-            const querytext = 'SELECT * FROM LOGISTIC.PRODUCTS;'
+            const querytext = 'SELECT * FROM LOGISTIC.PRODUCTS ORDER BY SL_PRODUCT_NAME LIMIT 10;'
             const getproducts = await client.query(querytext)
             if (getproducts.rowCount <= 0) {
                 res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getproducts.rows})
@@ -45,8 +44,13 @@ Router.get('/getproducts', async (req, res) => {
 // CRIAÇÃO DE PRODUTOS
 
 Router.post('/createproducts', async (req, res) => {
-    if (req.body.name && req.body.value || Number.isInteger(req.body.value)){
+    if (req.body.name && req.body.value){
         const client = await db.connect()
+        const nameverify = await client.query('SELECT SL_PRODUCT_NAME FROM LOGISTIC.PRODUCTS WHERE SL_PRODUCT_NAME = $1;', [req.body.name])
+        if (nameverify.rowCount > 0){
+            res.status(200).json({message: "Já exisite um produto com este nome!", error: true})
+            return
+        }
         try{
             // TRANSACTION
             await db.query('BEGIN')
@@ -96,14 +100,14 @@ Router.put('/updateproducts', async (req, res) => {
 
 // EXCLUSÃO DE PRODUTOS
 
-Router.delete('/deleteteproducts', async (req, res) => {
-    if (req.query.id){
+Router.delete('/deleteproducts/:id', async (req, res) => {
+    if (req.params.id){
         const client = await db.connect()
         try{
             // TRANSACTION 
             await client.query('BEGIN')
             const querytext = 'DELETE FROM LOGISTIC.PRODUCTS WHERE SL_ID_PK = $1 RETURNING *;'
-            const values = [req.query.id]
+            const values = [req.params.id]
             const deleteproduct = await client.query(querytext, values)
             await client.query('COMMIT')
             // END TRANSACTION
