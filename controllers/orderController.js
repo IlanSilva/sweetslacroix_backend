@@ -2,32 +2,55 @@ const { json, text } = require('body-parser')
 const express = require('express')
 const Router = express.Router()
 
+// MIDDLEWARES
+const orderMiddleware = require('../middlewares/validation/orderValidation')
 
 // DATABASE
 const db = require('../database/database')
 
-Router.post('/createorder', async (req, res) => {
-    if (!req.body.products || !req.body.products || !req.body.client || !req.body.value){
-        res.status(200).json({message: "Sua requisição está com falta de dados, por favor verifique e tente novamente.", error: true, data: req.body})
-        return
-    }
+Router.post('/createorder', orderMiddleware.createValidation, async (req, res) => {
     const client = await db.connect()
     try{
-        const findquery = 'SELECT SL_ID_PK FROM CUSTOMERS.PERSONS WHERE SL_ID_PK = $1;'
-        const findvalue = [req.body.client]
-        const findcustomer = await db.query(findquery, findvalue)
-        if (!findcustomer){
-            res.status(200).json({message: "Não foi localizado nenhum cliente com este ID, favor verifique e tente novamente.", error: true, data: req.body})
-            return
+        // EMPACOTAÇÃO DOS PRODUTOS
+        const products = []
+        let pre_value = 0
+        const discount = 0
+        if (req.body.discount){
+            discount += req.body.discount
         }
+        let productCount = 0
+        for (element of req.body.basket){
+            const productverify = await client.query('SELECT SL_PRODUCT_NAME, SL_PRODUCT_VALUE FROM LOGISTIC.PRODUCTS WHERE SL_ID_PK = $1;', [element.id])
+            if(productverify.rowCount > 0){
+                productCount += 1
+                pre_value += parseFloat(productverify.rows[0].sl_product_value)
+                products.push({index: productCount, name: productverify.rows[0].sl_product_name, value: productverify.rows[0].sl_product_value})
+                let pvst = pre_value.toFixed(2)
+                pre_value = parseFloat(pvst) 
+            }
+        }
+        const final_value = pre_value - (pre_value * discount / 100)
+
+        // START TRANSACTION
+        await client.query('BEGIN')
         
-        const querytext = 'INSERT INTO LOGISTIC.ORDERS (CD_CLIENT, SL_PRODUCTS, SL_SITUATION, SL_PRICE) VALUES ($1, $2, $3, $4) RETURNING *;'
-        const values = [req.body.client, req.body.products, req.body.situation, req.body.value]
-        const createorder = await client.query(querytext, values)
+        const text_createaddress = 'INSERT INTO LOGISTIC.ADDRESSES_FOR_ORDERS(AO_CEP, AO_UF, AO_CITY, AO_NEIGHBORHOOD, AO_STREET, AO_NUMBERHOUSE, AO_REFERENCE, AO_DESCRIPTION) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING AO_ID_PK;'
+        const values_createaddress = [req.body.address.cep, req.body.address.uf, req.body.address.city, req.body.address.neighborhood, req.body.address.street, req.body.address.numberhouse,
+        req.body.address.reference, req.body.address.description]
+        
+        const query_address = await client.query(text_createaddress, values_createaddress)
+        const addressId = query_address.rows[0].ao_id_pk
+        const text_createorder = "INSERT INTO LOGISTIC.ORDERS (CD_CLIENT, OR_PRODUCTS, OR_SITUATION, OR_PRICE, OR_ADDRESS) VALUES ($1, $2, $3, $4, $5) RETURNING OR_ID_PK;"
+        const values_createorder = [req.body.client.id, {data: products}, "CRIADO", final_value, addressId]
+        const query_order = await client.query(text_createorder, values_createorder)
+    
+        await client.query('COMMIT')
+        // END TRANSACTION
 
-
-        res.status(201).json({message: 'Criação de pedido feito com sucesso!', error: false, data: createorder.rows})
+        res.status(201).json({message: 'Criação de pedido feito com sucesso!', error: false, data: query_order.rows})
     }catch(err){
+        await client.query('ROLLBACK')
+        console.log(err)
         res.status(404).json({message: 'Falha na criação do pedido!', error: true})
     }finally{
         client.release()
