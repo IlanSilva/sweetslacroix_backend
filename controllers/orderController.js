@@ -14,7 +14,7 @@ Router.post('/createorder', orderMiddleware.createValidation, async (req, res) =
         // EMPACOTAÇÃO DOS PRODUTOS
         const products = []
         let pre_value = 0
-        const discount = 0
+        let discount = 0
         if (req.body.discount){
             discount += req.body.discount
         }
