@@ -57,42 +57,42 @@ Router.post('/createorder', orderMiddleware.createValidation, async (req, res) =
     }
 })
 
+Router.get('/getorder', async (req, res) => {
+    const client = await db.connect()
+    try{
+        const querytext = 'SELECT * FROM LOGISTIC.ORDERS;'
+        const getorder = await client.query(querytext)
+        // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
+        if (getorder.rowCount <= 0){
+            res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getorder.rows})
+        }else{
+            res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getorder.rowCount} registros.`, error: false, data: getorder.rows})
+        }
+    }catch(err){
+        res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
+    }finally{
+        client.release()
+    }
+})
 
 Router.get('/getorder/:id', async (req, res) => {
-    if (!req.params.id){
-        const client = await db.connect()
-        try{
-            const querytext = 'SELECT * FROM LOGISTIC.ORDERS;'
-            const getorder = await client.query(querytext)
-            // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
-            if (getorder.rowCount <= 0){
-                res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getorder.rows})
-            }else{
-                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getorder.rowCount} registros.`, error: false, data: getorder.rows})
-            }
-        }catch(err){
-            res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
-        }finally{
-            client.release()
+    const client = await db.connect()
+    try{
+        const querytext = 'SELECT * FROM LOGISTIC.ORDERS WHERE OR_ID_PK = $1;'
+        const values = [req.params.id]
+        const getorder = await client.query(querytext, values)
+        // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
+        if (getorder.rowCount <= 0){
+            res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getorder.rows})
+        }else{
+            res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getorder.rowCount} registros.`, error: false, data: getorder.rows})
         }
-    }else{
-        const client = await db.connect()
-        try{
-            const querytext = 'SELECT * FROM LOGISTIC.ORDERS WHERE OR_ID_PK = $1;'
-            const values = [req.params.id]
-            const getorder = await client.query(querytext, values)
-            // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
-            if (getorder.rowCount <= 0){
-                res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getorder.rows})
-            }else{
-                res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getorder.rowCount} registros.`, error: false, data: getorder.rows})
-            }
-        }catch(err){
-            res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
-        }finally{
-            client.release()
-        }
+    }catch(err){
+        res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
+    }finally{
+        client.release()
     }
+    
 })
 
 Router.put('/updateorder/:id',orderMiddleware.updateValidation, async (req, res) => {
