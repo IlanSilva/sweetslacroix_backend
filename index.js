@@ -2,6 +2,8 @@ const bodyparser = require('body-parser')
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+// DATABASE
+const db = require('./database/database')
 
 const app = express()
 
@@ -22,6 +24,7 @@ app.use('/products', productListController)
 app.use('/customers', customerController)
 app.use('/orders', orderController)
 app.use('/address', addressController)
+
 
 // OTHERS
 const PORT = 8082

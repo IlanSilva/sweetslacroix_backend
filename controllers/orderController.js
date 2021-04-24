@@ -24,7 +24,7 @@ Router.post('/createorder', orderMiddleware.createValidation, async (req, res) =
             if(productverify.rowCount > 0){
                 productCount += 1
                 pre_value += parseFloat(productverify.rows[0].sl_product_value)
-                products.push({index: productCount, name: productverify.rows[0].sl_product_name, value: productverify.rows[0].sl_product_value})
+                products.push({index: productCount, name: productverify.rows[0].sl_product_name, value: productverify.rows[0].sl_product_value, id: productverify.rows[0].sl_id_pk})
                 let pvst = pre_value.toFixed(2)
                 pre_value = parseFloat(pvst) 
             }
@@ -57,11 +57,28 @@ Router.post('/createorder', orderMiddleware.createValidation, async (req, res) =
     }
 })
 
-Router.get('/getorder', async (req, res) => {
+Router.get('/listorder', async (req, res) => {
     const client = await db.connect()
     try{
-        const querytext = 'SELECT * FROM LOGISTIC.ORDERS;'
-        const getorder = await client.query(querytext)
+        if(!req.query.initial_date){
+            req.query.initial_date = '1900-01-01'
+        }
+        if(!req.query.final_date){
+            req.query.final_date = '3000-01-01'
+        }
+        let getorder = []
+        if(req.query.orderid){
+            const querytext = 'SELECT * FROM LOGISTIC.ORDERS WHERE OR_ID_PK = $1 AND OR_CREATEDAT BETWEEN $2 AND $3 ORDER BY OR_ID_PK;'
+            const values = [req.query.orderid, req.query.initial_date, req.query.final_date]
+            const result = await client.query(querytext, values)
+            getorder = result
+        }else{
+            const querytext = 'SELECT * FROM LOGISTIC.ORDERS WHERE OR_CREATEDAT BETWEEN $1 AND $2 ORDER BY OR_ID_PK;'
+            const values = [req.query.initial_date, req.query.final_date]
+            const result = await client.query(querytext, values)
+            getorder = result
+        }
+        
         // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
         if (getorder.rowCount <= 0){
             res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getorder.rows})
@@ -69,11 +86,13 @@ Router.get('/getorder', async (req, res) => {
             res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getorder.rowCount} registros.`, error: false, data: getorder.rows})
         }
     }catch(err){
+        console.log(err)
         res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
     }finally{
         client.release()
     }
 })
+
 
 Router.get('/getorder/:id', async (req, res) => {
     const client = await db.connect()
@@ -83,11 +102,13 @@ Router.get('/getorder/:id', async (req, res) => {
         const getorder = await client.query(querytext, values)
         // LÓGICA DE RETORNO BASEADO NA QUANTIDADE DE REGISTROS RECUPERADOS.
         if (getorder.rowCount <= 0){
-            res.status(200).json({message: `Não foi localizado nenhum registro.`, error: false, data: getorder.rows})
+            res.status(200).json({message: `Não foi localizado nenhum registro.`, error: true})
         }else{
-            res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getorder.rowCount} registros.`, error: false, data: getorder.rows})
+            const getaddress = await client.query('SELECT * FROM LOGISTIC.ADDRESSES_FOR_ORDERS WHERE AO_ID_PK = $1;', [getorder.rows[0].or_address])
+            res.status(200).json({message: `Localização feita com sucesso! foi recuperado ${getorder.rowCount} registros.`, error: false, data: {order: getorder.rows[0], address: getaddress.rows[0]}})
         }
     }catch(err){
+        console.log(err)
         res.status(404).json({message: 'Falha ao recuperar dados!', error: true})
     }finally{
         client.release()
@@ -110,17 +131,17 @@ Router.put('/updateorder/:id',orderMiddleware.updateValidation, async (req, res)
         // EMPACOTAÇÃO DOS PRODUTOS
         const products = []
         let pre_value = 0
-        const discount = 0
+        let discount = 0
         if (req.body.discount){
             discount += req.body.discount
         }
         let productCount = 0
         for (element of req.body.basket){
-            const productverify = await client.query('SELECT SL_PRODUCT_NAME, SL_PRODUCT_VALUE FROM LOGISTIC.PRODUCTS WHERE SL_ID_PK = $1;', [element.id])
+            const productverify = await client.query('SELECT SL_ID_PK, SL_PRODUCT_NAME, SL_PRODUCT_VALUE FROM LOGISTIC.PRODUCTS WHERE SL_ID_PK = $1;', [element.id])
             if(productverify.rowCount > 0){
                 productCount += 1
                 pre_value += parseFloat(productverify.rows[0].sl_product_value)
-                products.push({index: productCount, name: productverify.rows[0].sl_product_name, value: productverify.rows[0].sl_product_value})
+                products.push({index: productCount, name: productverify.rows[0].sl_product_name, value: productverify.rows[0].sl_product_value, id: productverify.rows[0].sl_id_pk})
                 let pvst = pre_value.toFixed(2)
                 pre_value = parseFloat(pvst) 
             }
