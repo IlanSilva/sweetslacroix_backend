@@ -19,12 +19,13 @@ const productListController = require('./controllers/productListController')
 const customerController = require('./controllers/customerController')
 const orderController = require('./controllers/orderController')
 const addressController = require('./controllers/addressController')
+const authController = require('./controllers/authController')
 
 app.use('/products', productListController)
 app.use('/customers', customerController)
 app.use('/orders', orderController)
 app.use('/address', addressController)
-
+app.use('/auth', authController)
 
 // OTHERS
 const PORT = 8082
