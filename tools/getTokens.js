@@ -4,8 +4,7 @@ const secretkey = '826ed73e9e30874fa7ea1034c48622d9'
 
 const generatetoken = function(payload){
     const date = Date.now()
-    const newhash = date.toString() + payload
-    const token = jwt.sign(newhash, secretkey, {expiresIn: '1d'})
+    const token = jwt.sign({payload: payload, date: date}, secretkey, {expiresIn: 86400})
     return token
 }
 

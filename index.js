@@ -2,8 +2,7 @@ const bodyparser = require('body-parser')
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-// DATABASE
-const db = require('./database/database')
+
 
 const app = express()
 
@@ -12,6 +11,8 @@ app.use(cors())
 app.use(morgan('dev'))
 app.use(bodyparser.json())
 app.use(bodyparser.urlencoded({extended: false}))
+    // MIDDLEWARES
+    const tokenMiddleware = require('./middlewares/validation/loginValidation')
 
 // IMPORT CONTROLLERS
 
@@ -21,10 +22,10 @@ const orderController = require('./controllers/orderController')
 const addressController = require('./controllers/addressController')
 const authController = require('./controllers/authController')
 
-app.use('/products', productListController)
-app.use('/customers', customerController)
-app.use('/orders', orderController)
-app.use('/address', addressController)
+app.use('/products', tokenMiddleware.authverify, productListController)
+app.use('/customers', tokenMiddleware.authverify, customerController)
+app.use('/orders', tokenMiddleware.authverify, orderController)
+app.use('/address', tokenMiddleware.authverify, addressController)
 app.use('/auth', authController)
 
 // OTHERS
